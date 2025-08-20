@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>MONAD DAPPS HUB — 3D Hologram Carousel</title>
+  <style>
+    html,body { height:100%; margin:0; background:#000; overflow:hidden; -webkit-font-smoothing:antialiased; }
+    canvas { display:block; position:fixed; inset:0; width:100%; height:100%; touch-action:none; } /* touch-action:none => kita tangani touch manually */
+    #title, #footer {
+      position: absolute;
+      left: 0; right: 0;
+      text-align: center;
+      color: #00f0ff;
+      text-shadow: 0 0 8px #00f0ff, 0 0 18px #00f0ff;
+      font-family: Inter, Arial, sans-serif;
+      pointer-events: none;
+    }
+    #title { top:20px; font-weight:700; font-size:28px; }
+    #footer { bottom:18px; font-weight:700; font-size:18px; letter-spacing:1px; }
+    /* small screens */
+    @media (max-width:600px){
+      #title { font-size:20px; }
+      #footer { font-size:14px; }
+    }
+  </style>
+</head>
+<body>
+  <div id="title">MONAD DAPPS</div>
+  <div id="footer">PICK YOUR APP</div>
+
+<script type="module">
+  import * as THREE from "https://unpkg.com/three@0.160.0/build/three.module.js";
+
+  const scene = new THREE.Scene();
+
+  // background pakai video
+const video = document.createElement("video");
+video.src = "vid1.mp4";   // file video kamu
+video.loop = true;
+video.muted = true;
+video.autoplay = true;
+video.playsInline = true;
+video.play();
+
+const videoTexture = new THREE.VideoTexture(video);
+scene.background = videoTexture;
+
+
+
+
+
+
+  const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 1000);
+  camera.position.set(0, 0, 10);
+
+  const renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.domElement.style.touchAction = 'none';
+  document.body.appendChild(renderer.domElement);
+
+  // lights
+  scene.add(new THREE.AmbientLight(0xffffff, 0.25));
+  const pLight = new THREE.PointLight(0x00ffff, 1.6, 60);
+  pLight.position.set(0, 6, 12);
+  scene.add(pLight);
+
+  // ---------------------------
+  // App data
+  // ---------------------------
+  const appLinks = [
+    { 
+      name: "Bridge", 
+      url: "https://testnet.monad.xyz/bridge", 
+      desc: "Transfer assets seamlessly across chains with ease." 
+    },
+    { 
+      name: "Swap",   
+      url: "https://testnet.monad.xyz/swap", 
+      desc: "Exchange your tokens instantly with low fees and high speed." 
+    },
+    { 
+      name: "DEX",    
+      url: "https://testnet.monad.xyz/dex", 
+      desc: "Trade on a decentralized exchange with full transparency." 
+    },
+    { 
+      name: "Wallet", 
+      url: "https://testnet.monad.xyz/wallet", 
+      desc: "Securely manage and explore your assets in one place." 
+    },
+    { 
+      name: "NFT Hub",
+      url: "https://testnet.monad.xyz/nft", 
+      desc: "Discover, collect, and trade NFTs in an immersive marketplace." 
+    }
+  ];
+
+  const spacing = 6.5;
+  const centerOffset = ((appLinks.length - 1) * spacing) / 2;
+  const cards = [];
+
+  // ---------------------------
+  // Fungsi buat card UI (CanvasTexture)
+  // ---------------------------
+  function createAppCard(app, xPos) {
+    const width = 600, height = 800;
+    const cvs = document.createElement("canvas");
+    cvs.width = width; cvs.height = height;
+    const ctx = cvs.getContext("2d");
+
+    // background utama
+    ctx.fillStyle = "#1a1a1a";
+    ctx.roundRect(0, 0, width, height, 40);
+    ctx.fill();
+
+    // header area
+    ctx.fillStyle = "#444";
+    ctx.roundRect(0, 0, width, 200, [40,40,0,0]);
+    ctx.fill();
+
+    // logo bulat (dummy putih)
+    ctx.fillStyle = "#fff";
+    ctx.beginPath();
+    ctx.arc(80, 80, 40, 0, Math.PI*2);
+    ctx.fill();
+
+    // tombol X
+    ctx.fillStyle = "#fff";
+    ctx.font = "bold 50px Arial";
+    ctx.textAlign = "right";
+    ctx.fillText("×", width - 30, 70);
+
+    // judul
+    ctx.fillStyle = "#fff";
+    ctx.font = "bold 50px Arial";
+    ctx.textAlign = "left";
+    ctx.fillText(app.name, 50, 280);
+
+    // deskripsi
+    ctx.fillStyle = "#ccc";
+    ctx.font = "28px Arial";
+    ctx.textAlign = "left";
+    wrapText(ctx, app.desc, 50, 340, width-100, 36);
+
+    // tombol Launch
+    ctx.fillStyle = "#6b46c1";
+    roundRect(ctx, width/2 - 140, height-120, 280, 80, 40);
+    ctx.fill();
+    ctx.fillStyle = "#fff";
+    ctx.font = "bold 32px Arial";
+    ctx.textAlign = "center";
+    ctx.fillText("Launch App", width/2, height-70);
+
+    const tex = new THREE.CanvasTexture(cvs);
+    const mat = new THREE.MeshBasicMaterial({ map: tex, transparent: true });
+    const mesh = new THREE.Mesh(new THREE.PlaneGeometry(3.5, 4.6), mat);
+    mesh.position.set(xPos, 0, 0);
+    mesh.userData = { url: app.url };
+    scene.add(mesh);
+    return mesh;
+  }
+
+  // helper buat rounded rect
+  function roundRect(ctx, x, y, w, h, r) {
+    if (typeof r === 'number') r = [r,r,r,r];
+    ctx.beginPath();
+    ctx.moveTo(x+r[0], y);
+    ctx.lineTo(x+w-r[1], y);
+    ctx.quadraticCurveTo(x+w, y, x+w, y+r[1]);
+    ctx.lineTo(x+w, y+h-r[2]);
+    ctx.quadraticCurveTo(x+w, y+h, x+w-r[2], y+h);
+    ctx.lineTo(x+r[3], y+h);
+    ctx.quadraticCurveTo(x, y+h, x, y+h-r[3]);
+    ctx.lineTo(x, y+r[0]);
+    ctx.quadraticCurveTo(x, y, x+r[0], y);
+    ctx.closePath();
+  }
+
+  // helper text wrap
+  function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
+    const words = text.split(" ");
+    let line = "";
+    for (let n = 0; n < words.length; n++) {
+      const testLine = line + words[n] + " ";
+      const metrics = ctx.measureText(testLine);
+      const testWidth = metrics.width;
+      if (testWidth > maxWidth && n > 0) {
+        ctx.fillText(line, x, y);
+        line = words[n] + " ";
+        y += lineHeight;
+      } else {
+        line = testLine;
+      }
+    }
+    ctx.fillText(line, x, y);
+  }
+
+  // generate cards
+  appLinks.forEach((app, i) => {
+    const card = createAppCard(app, i * spacing - centerOffset);
+    cards.push(card);
+  });
+
+  // ---------------------------
+  // Scroll + Snap + Active card
+  // ---------------------------
+  let scrollTarget = 0;
+  let isPointerDown = false;
+  let pointerStartX = 0;
+  let scrollStart = 0;
+  let movedSinceDown = 0;
+  let activeCard = null;
+
+  const sensitivity = 0.02;
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  const minX = -centerOffset - 0.5;
+  const maxX = centerOffset + 0.5;
+
+  function setActiveCard(card) {
+    activeCard = card;
+  }
+
+  function snapToNearestCard() {
+    let nearest = null;
+    let minDist = Infinity;
+    cards.forEach((c) => {
+      const dist = Math.abs(c.position.x - scrollTarget);
+      if (dist < minDist) {
+        minDist = dist;
+        nearest = c;
+      }
+    });
+    if (nearest) {
+      scrollTarget = nearest.position.x;
+      setActiveCard(nearest);
+    }
+  }
+
+  renderer.domElement.addEventListener('pointerdown', (e) => {
+    isPointerDown = true;
+    pointerStartX = e.clientX;
+    scrollStart = scrollTarget;
+    movedSinceDown = 0;
+    renderer.domElement.setPointerCapture(e.pointerId);
+  });
+
+  renderer.domElement.addEventListener('pointermove', (e) => {
+    if (!isPointerDown) return;
+    const dx = e.clientX - pointerStartX;
+    movedSinceDown += Math.abs(dx);
+    scrollTarget = clamp(scrollStart - dx * sensitivity, minX, maxX);
+  });
+
+  renderer.domElement.addEventListener('pointerup', (e) => {
+    const clickThreshold = 6;
+    const dx = e.clientX - pointerStartX;
+    isPointerDown = false;
+    try { renderer.domElement.releasePointerCapture(e.pointerId); } catch(_) {}
+    if (Math.abs(dx) < clickThreshold && Math.abs(movedSinceDown) < clickThreshold) {
+      onClickOpen(e.clientX, e.clientY);
+    } else {
+      snapToNearestCard();
+    }
+  });
+
+  renderer.domElement.addEventListener('pointercancel', () => { isPointerDown = false; });
+
+  window.addEventListener('wheel', (e) => {
+    const delta = (e.deltaX !== 0) ? e.deltaX : e.deltaY;
+    scrollTarget = clamp(scrollTarget + delta * 0.02, minX, maxX);
+    e.preventDefault();
+    clearTimeout(window._snapTimer);
+    window._snapTimer = setTimeout(() => snapToNearestCard(), 120);
+  }, { passive: false });
+
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowLeft')  scrollTarget = clamp(scrollTarget - spacing, minX, maxX);
+    if (e.key === 'ArrowRight') scrollTarget = clamp(scrollTarget + spacing, minX, maxX);
+    snapToNearestCard();
+  });
+
+  // ---------------------------
+  // Raycaster
+  // ---------------------------
+  const raycaster = new THREE.Raycaster();
+  const pointerN = new THREE.Vector2();
+  function onClickOpen(clientX, clientY) {
+    pointerN.x = (clientX / window.innerWidth) * 2 - 1;
+    pointerN.y = -(clientY / window.innerHeight) * 2 + 1;
+    raycaster.setFromCamera(pointerN, camera);
+    const intersects = raycaster.intersectObjects(cards, false);
+    if (intersects.length > 0) {
+      const url = intersects[0].object.userData?.url;
+      if (url) window.open(url, "_blank");
+    }
+  }
+
+  // ---------------------------
+  // Animation loop
+  // ---------------------------
+  function animate() {
+    requestAnimationFrame(animate);
+    camera.position.x += (scrollTarget - camera.position.x) * 0.12;
+
+    const t = Date.now() * 0.001;
+    cards.forEach((c, i) => {
+      c.position.y = Math.sin(t * 1.2 + i) * 0.1;
+
+      if (c === activeCard) {
+        c.scale.lerp(new THREE.Vector3(1.5, 1.5, 1.5), 0.1);
+        c.position.z += (-2 - c.position.z) * 0.1;
+      } else {
+        c.scale.lerp(new THREE.Vector3(1, 1, 1), 0.1);
+        c.position.z += (0 - c.position.z) * 0.1;
+      }
+    });
+
+    renderer.render(scene, camera);
+  }
+  animate();
+
+  window.addEventListener('resize', () => {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+  });
+</script>
+
+
+</body>
+</html>
