@@ -104,63 +104,98 @@ scene.background = videoTexture;
   // ---------------------------
   // Fungsi buat card UI (CanvasTexture)
   // ---------------------------
-  function createAppCard(app, xPos) {
-    const width = 600, height = 800;
-    const cvs = document.createElement("canvas");
-    cvs.width = width; cvs.height = height;
-    const ctx = cvs.getContext("2d");
+// ---------------------------
+// Fungsi buat card UI (CanvasTexture) - versi hologram
+// ---------------------------
+function createAppCard(app, xPos) {
+  const width = 600, height = 800;
+  const cvs = document.createElement("canvas");
+  cvs.width = width; 
+  cvs.height = height;
+  const ctx = cvs.getContext("2d");
 
-    // background utama
-    ctx.fillStyle = "#1a1a1a";
-    ctx.roundRect(0, 0, width, height, 40);
-    ctx.fill();
+  // background hologram transparan
+  ctx.fillStyle = "rgba(0, 255, 255, 0.18)"; // cyan + transparan
+  ctx.roundRect(0, 0, width, height, 40);
+  ctx.fill();
 
-    // header area
-    ctx.fillStyle = "#444";
-    ctx.roundRect(0, 0, width, 200, [40,40,0,0]);
-    ctx.fill();
+  // outline glow
+  ctx.strokeStyle = "rgba(0, 255, 255, 0.8)";
+  ctx.lineWidth = 8;
+  ctx.shadowColor = "#00ffff";
+  ctx.shadowBlur = 25;
+  ctx.roundRect(0, 0, width, height, 40);
+  ctx.stroke();
 
-    // logo bulat (dummy putih)
-    ctx.fillStyle = "#fff";
-    ctx.beginPath();
-    ctx.arc(80, 80, 40, 0, Math.PI*2);
-    ctx.fill();
+  // header area (semi transparan gelap)
+  ctx.fillStyle = "rgba(0, 0, 0, 0.4)";
+  ctx.roundRect(0, 0, width, 200, [40,40,0,0]);
+  ctx.fill();
 
-    // tombol X
-    ctx.fillStyle = "#fff";
-    ctx.font = "bold 50px Arial";
-    ctx.textAlign = "right";
-    ctx.fillText("×", width - 30, 70);
+  // logo bulat (dummy putih, bisa diganti image)
+// logo image
+const logo = new Image();
+logo.src = "logotes.png"; // ganti sesuai file logo kamu
+logo.onload = () => {
+  ctx.drawImage(logo, 40, 40, 80, 80); // posisi X,Y = 40,40 ; ukuran = 80x80
+  tex.needsUpdate = true; // wajib agar texture 3D update
+};
 
-    // judul
-    ctx.fillStyle = "#fff";
-    ctx.font = "bold 50px Arial";
-    ctx.textAlign = "left";
-    ctx.fillText(app.name, 50, 280);
+  // tombol X
+  ctx.fillStyle = "#fff";
+  ctx.font = "bold 50px Arial";
+  ctx.textAlign = "right";
+  ctx.fillText("×", width - 30, 70);
 
-    // deskripsi
-    ctx.fillStyle = "#ccc";
-    ctx.font = "28px Arial";
-    ctx.textAlign = "left";
-    wrapText(ctx, app.desc, 50, 340, width-100, 36);
+  // judul app
+  ctx.fillStyle = "#00ffff";
+  ctx.font = "bold 50px Arial";
+  ctx.textAlign = "left";
+  ctx.fillText(app.name, 50, 280);
 
-    // tombol Launch
-    ctx.fillStyle = "#6b46c1";
-    roundRect(ctx, width/2 - 140, height-120, 280, 80, 40);
-    ctx.fill();
-    ctx.fillStyle = "#fff";
-    ctx.font = "bold 32px Arial";
-    ctx.textAlign = "center";
-    ctx.fillText("Launch App", width/2, height-70);
+  // deskripsi
+  ctx.fillStyle = "rgba(255,255,255,0.85)";
+  ctx.font = "28px Arial";
+  ctx.textAlign = "left";
+  wrapText(ctx, app.desc, 50, 340, width-100, 36);
 
-    const tex = new THREE.CanvasTexture(cvs);
-    const mat = new THREE.MeshBasicMaterial({ map: tex, transparent: true });
-    const mesh = new THREE.Mesh(new THREE.PlaneGeometry(3.5, 4.6), mat);
-    mesh.position.set(xPos, 0, 0);
-    mesh.userData = { url: app.url };
-    scene.add(mesh);
-    return mesh;
-  }
+  // tombol Launch
+  ctx.fillStyle = "rgba(0, 255, 255, 0.25)";
+  roundRect(ctx, width/2 - 140, height-120, 280, 80, 40);
+  ctx.fill();
+
+  ctx.strokeStyle = "#00ffff";
+  ctx.lineWidth = 4;
+  ctx.shadowColor = "#00ffff";
+  ctx.shadowBlur = 15;
+  roundRect(ctx, width/2 - 140, height-120, 280, 80, 40);
+  ctx.stroke();
+
+  ctx.fillStyle = "#00ffff";
+  ctx.font = "bold 32px Arial";
+  ctx.textAlign = "center";
+  ctx.shadowBlur = 0;
+  ctx.fillText("Launch App", width/2, height-70);
+
+  // convert ke texture
+const tex = new THREE.CanvasTexture(cvs);
+const mat = new THREE.MeshBasicMaterial({ 
+  map: tex, 
+  transparent: true, 
+  opacity: 0.9  
+});
+
+const mesh = new THREE.Mesh(new THREE.PlaneGeometry(3.5, 4.6), mat);
+mesh.position.set(xPos, 0, 0);
+
+// ✅ simpan material juga ke userData
+mesh.userData = { url: app.url, material: mat };
+
+scene.add(mesh);
+return mesh;
+
+}
+
 
   // helper buat rounded rect
   function roundRect(ctx, x, y, w, h, r) {
@@ -300,25 +335,34 @@ scene.background = videoTexture;
   // ---------------------------
   // Animation loop
   // ---------------------------
-  function animate() {
-    requestAnimationFrame(animate);
-    camera.position.x += (scrollTarget - camera.position.x) * 0.12;
+function animate() {
+  requestAnimationFrame(animate);
+  camera.position.x += (scrollTarget - camera.position.x) * 0.12;
 
-    const t = Date.now() * 0.001;
-    cards.forEach((c, i) => {
-      c.position.y = Math.sin(t * 1.2 + i) * 0.1;
+  const t = Date.now() * 0.002; // waktu animasi
 
-      if (c === activeCard) {
-        c.scale.lerp(new THREE.Vector3(1.5, 1.5, 1.5), 0.1);
-        c.position.z += (-2 - c.position.z) * 0.1;
-      } else {
-        c.scale.lerp(new THREE.Vector3(1, 1, 1), 0.1);
-        c.position.z += (0 - c.position.z) * 0.1;
-      }
-    });
+  cards.forEach((c, i) => {
+    c.position.y = Math.sin(t * 1.2 + i) * 0.1;
 
-    renderer.render(scene, camera);
-  }
+    if (c === activeCard) {
+      // card aktif lebih besar + maju
+      c.scale.lerp(new THREE.Vector3(1.5, 1.5, 1.5), 0.1);
+      c.position.z += (-2 - c.position.z) * 0.1;
+
+      // ✅ efek pulse glow
+      const pulse = 0.75 + 0.25 * Math.sin(t * 3); // range opacity 0.5 – 1.0
+      c.userData.material.opacity = pulse;
+    } else {
+      // card normal
+      c.scale.lerp(new THREE.Vector3(1, 1, 1), 0.1);
+      c.position.z += (0 - c.position.z) * 0.1;
+      c.userData.material.opacity = 0.9;
+    }
+  });
+
+  renderer.render(scene, camera);
+}
+
   animate();
 
   window.addEventListener('resize', () => {
