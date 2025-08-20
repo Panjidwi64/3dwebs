@@ -6,7 +6,7 @@
   <title>MONAD DAPPS HUB — 3D Hologram Carousel</title>
   <style>
     html,body { height:100%; margin:0; background:#000; overflow:hidden; -webkit-font-smoothing:antialiased; }
-    canvas { display:block; position:fixed; inset:0; width:100%; height:100%; touch-action:none; } /* touch-action:none => kita tangani touch manually */
+    canvas { display:block; position:fixed; inset:0; width:100%; height:100%; touch-action:none; z-index: 0; } /* touch-action:none => kita tangani touch manually */
     #title, #footer {
       position: absolute;
       left: 0; right: 0;
@@ -15,6 +15,7 @@
       text-shadow: 0 0 8px #00f0ff, 0 0 18px #00f0ff;
       font-family: Inter, Arial, sans-serif;
       pointer-events: none;
+      z-index: 10;
     }
     #title { top:20px; font-weight:700; font-size:28px; }
     #footer { bottom:18px; font-weight:700; font-size:18px; letter-spacing:1px; }
@@ -132,7 +133,7 @@ ctx.stroke();
   ctx.roundRect(0, 0, width, 200, [40,40,0,0]);
   ctx.fill();
 
-  // logo bulat (dummy putih, bisa diganti image)
+
 // logo image
 const logo = new Image();
 logo.src = "logotes.png"; // ganti sesuai file logo kamu
@@ -148,7 +149,7 @@ logo.onload = () => {
   ctx.fillText("×", width - 30, 70);
 
   // judul app
-  ctx.fillStyle = "#00ffff";
+  ctx.fillStyle = "rgba(255,255,255,0.85)";
   ctx.font = "bold 50px Arial";
   ctx.textAlign = "left";
   ctx.fillText(app.name, 50, 280);
