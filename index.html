@@ -67,6 +67,19 @@ scene.background = videoTexture;
   pLight.position.set(0, 6, 12);
   scene.add(pLight);
 
+  // Lantai tipis untuk kesan neon floor
+const floorGeo = new THREE.PlaneGeometry(200, 200);
+const floorMat = new THREE.MeshBasicMaterial({
+  color: 0x001010,
+  transparent: true,
+  opacity: 0.6
+});
+const floor = new THREE.Mesh(floorGeo, floorMat);
+floor.rotation.x = -Math.PI / 2;
+floor.position.y = -2.5;
+scene.add(floor);
+
+
   // ---------------------------
   // App data
   // ---------------------------
@@ -191,6 +204,22 @@ mesh.position.set(xPos, 0, 0);
 
 // ✅ simpan material juga ke userData
 mesh.userData = { url: app.url, material: mat };
+
+// -----------------------------------------
+// FAKE REFLECTION (duplikat card di bawah)
+// -----------------------------------------
+const mirrorMat = new THREE.MeshBasicMaterial({
+  map: tex,
+  transparent: true,
+  opacity: 0.25,   // lebih redup
+  side: THREE.BackSide // biar gak hitam waktu dibalik
+});
+
+const mirrorMesh = new THREE.Mesh(new THREE.PlaneGeometry(3.5, 4.6), mirrorMat);
+mirrorMesh.position.set(0, -4.8, 0); // posisikan di bawah
+mirrorMesh.scale.y = -1;             // dibalik
+mesh.add(mirrorMesh);                // ikut gerakan card utama
+// -----------------------------------------
 
 scene.add(mesh);
 return mesh;
