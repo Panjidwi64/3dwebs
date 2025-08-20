@@ -115,66 +115,61 @@ function createAppCard(app, xPos) {
   cvs.height = height;
   const ctx = cvs.getContext("2d");
 
-  // Background utama dengan sudut membulat
-  ctx.fillStyle = "rgba(0, 0, 0, 0.85)";
-  roundRect(ctx, 0, 0, width, height, 40);
+  // background hologram transparan
+  ctx.fillStyle = "rgba(0, 0, 0, 0.85)"; // hitam agak transparan
+ctx.roundRect(0, 0, width, height, 40);
+ctx.fill();
+
+// outline putih glow
+ctx.strokeStyle = "rgba(255, 255, 255, 0.9)";
+ctx.lineWidth = 8;
+ctx.shadowColor = "#ffffff";  // glow putih
+ctx.shadowBlur = 25;
+ctx.roundRect(0, 0, width, height, 40);
+ctx.stroke();
+
+  // header area (semi transparan gelap)
+  ctx.fillStyle = "rgba(0, 0, 0, 0.4)";
+  ctx.roundRect(0, 0, width, 200, [40,40,0,0]);
   ctx.fill();
 
-  // Outline glow
-  ctx.strokeStyle = "rgba(255, 255, 255, 0.9)";
-  ctx.lineWidth = 6;
-  ctx.shadowColor = "#00ffff";
-  ctx.shadowBlur = 20;
-  roundRect(ctx, 0, 0, width, height, 40);
-  ctx.stroke();
 
-  // Reset shadow untuk teks berikutnya
-  ctx.shadowBlur = 0;
+// logo image
+const logo = new Image();
+logo.src = "logotes.png"; // ganti sesuai file logo kamu
+logo.onload = () => {
+  ctx.drawImage(logo, 40, 40, 80, 80); // posisi X,Y = 40,40 ; ukuran = 80x80
+  tex.needsUpdate = true; // wajib agar texture 3D update
+};
 
-  // --- Tombol X di pojok kanan atas ---
+  // tombol X
   ctx.fillStyle = "#fff";
   ctx.font = "bold 50px Arial";
   ctx.textAlign = "right";
   ctx.fillText("×", width - 30, 70);
 
-  // --- Logo di bagian atas tengah ---
-  const logo = new Image();
-  logo.src = "logotes.png"; // ganti sesuai logo kamu
-  logo.onload = () => {
-    ctx.drawImage(logo, width/2 - 100, 60, 200, 200);
-    tex.needsUpdate = true;
-  };
-
-  // --- Garis pembatas horizontal ---
-  ctx.strokeStyle = "rgba(255,255,255,0.5)";
-  ctx.lineWidth = 3;
-  ctx.beginPath();
-  ctx.moveTo(40, 300);
-  ctx.lineTo(width-40, 300);
-  ctx.stroke();
-
-  // --- Nama App ---
-  ctx.fillStyle = "#00ffff";
-  ctx.font = "bold 48px Arial";
-  ctx.textAlign = "center";
-  ctx.fillText(app.name, width/2, 380);
-
-  // --- Deskripsi ---
+  // judul app
   ctx.fillStyle = "rgba(255,255,255,0.85)";
-  ctx.font = "26px Arial";
-  ctx.textAlign = "center";
-  wrapText(ctx, app.desc, width/2, 440, width-100, 34);
+  ctx.font = "bold 50px Arial";
+  ctx.textAlign = "left";
+  ctx.fillText(app.name, 50, 280);
 
-  // --- Tombol Launch App ---
-  ctx.fillStyle = "rgba(0, 255, 255, 0.2)";
-  roundRect(ctx, width/2 - 140, height-120, 280, 80, 30);
+  // deskripsi
+  ctx.fillStyle = "rgba(255,255,255,0.85)";
+  ctx.font = "28px Arial";
+  ctx.textAlign = "left";
+  wrapText(ctx, app.desc, 50, 340, width-100, 36);
+
+  // tombol Launch
+  ctx.fillStyle = "rgba(0, 255, 255, 0.25)";
+  roundRect(ctx, width/2 - 140, height-120, 280, 80, 40);
   ctx.fill();
 
   ctx.strokeStyle = "#00ffff";
   ctx.lineWidth = 4;
   ctx.shadowColor = "#00ffff";
   ctx.shadowBlur = 15;
-  roundRect(ctx, width/2 - 140, height-120, 280, 80, 30);
+  roundRect(ctx, width/2 - 140, height-120, 280, 80, 40);
   ctx.stroke();
 
   ctx.fillStyle = "#00ffff";
@@ -183,24 +178,24 @@ function createAppCard(app, xPos) {
   ctx.shadowBlur = 0;
   ctx.fillText("Launch App", width/2, height-70);
 
-  // --- Convert ke texture 3D ---
-  const tex = new THREE.CanvasTexture(cvs);
-  const mat = new THREE.MeshBasicMaterial({ 
-    map: tex, 
-    transparent: true, 
-    opacity: 0.9  
-  });
+  // convert ke texture
+const tex = new THREE.CanvasTexture(cvs);
+const mat = new THREE.MeshBasicMaterial({ 
+  map: tex, 
+  transparent: true, 
+  opacity: 0.9  
+});
 
-  const mesh = new THREE.Mesh(new THREE.PlaneGeometry(3.5, 4.6), mat);
-  mesh.position.set(xPos, 0, 0);
+const mesh = new THREE.Mesh(new THREE.PlaneGeometry(3.5, 4.6), mat);
+mesh.position.set(xPos, 0, 0);
 
-  // simpan URL + material
-  mesh.userData = { url: app.url, material: mat };
+// ✅ simpan material juga ke userData
+mesh.userData = { url: app.url, material: mat };
 
-  scene.add(mesh);
-  return mesh;
+scene.add(mesh);
+return mesh;
+
 }
-
 
 
   // helper buat rounded rect
