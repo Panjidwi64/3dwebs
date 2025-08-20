@@ -115,17 +115,17 @@ function createAppCard(app, xPos) {
   const ctx = cvs.getContext("2d");
 
   // background hologram transparan
-  ctx.fillStyle = "rgba(0, 255, 255, 0.18)"; // cyan + transparan
-  ctx.roundRect(0, 0, width, height, 40);
-  ctx.fill();
+  ctx.fillStyle = "rgba(0, 0, 0, 0.85)"; // hitam agak transparan
+ctx.roundRect(0, 0, width, height, 40);
+ctx.fill();
 
-  // outline glow
-  ctx.strokeStyle = "rgba(0, 255, 255, 0.8)";
-  ctx.lineWidth = 8;
-  ctx.shadowColor = "#00ffff";
-  ctx.shadowBlur = 25;
-  ctx.roundRect(0, 0, width, height, 40);
-  ctx.stroke();
+// outline putih glow
+ctx.strokeStyle = "rgba(255, 255, 255, 0.9)";
+ctx.lineWidth = 8;
+ctx.shadowColor = "#ffffff";  // glow putih
+ctx.shadowBlur = 25;
+ctx.roundRect(0, 0, width, height, 40);
+ctx.stroke();
 
   // header area (semi transparan gelap)
   ctx.fillStyle = "rgba(0, 0, 0, 0.4)";
