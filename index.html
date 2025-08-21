@@ -80,6 +80,8 @@ scene.add(plane);
   pLight.position.set(0, 6, 12);
   scene.add(pLight);
 
+
+
   // ---------------------------
   // App data
   // ---------------------------
@@ -141,7 +143,7 @@ function createAppCard(app, xPos) {
   const ctx = cvs.getContext("2d");
 
   // background hitam gelap
-  ctx.fillStyle = "rgba(20, 20, 20, 0.95)";
+  ctx.fillStyle = "rgba(20, 20, 20, 1.0)";
   ctx.roundRect(0, 0, width, height, 30);
   ctx.fill();
 
@@ -190,7 +192,7 @@ function createAppCard(app, xPos) {
   const mat = new THREE.MeshBasicMaterial({
     map: tex,
     transparent: true,
-    opacity: 1
+    opacity: 1.0
   });
 
   const mesh = new THREE.Mesh(new THREE.PlaneGeometry(3.5, 4.6), mat);
@@ -413,7 +415,7 @@ cards.forEach((c, i) => {
     // card normal
     c.scale.lerp(new THREE.Vector3(1, 1, 1), 0.1);
     c.position.z += (0 - c.position.z) * 0.1;
-    c.userData.material.opacity = 0.9;
+    c.userData.material.opacity = 1.0;
 
     // matikan particle aura
     if (aura) aura.system.visible = false;
