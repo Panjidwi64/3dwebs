@@ -35,17 +35,30 @@
 
   const scene = new THREE.Scene();
 
-  // background pakai video
-const video = document.createElement("video");
-video.src = "vid1.mp4";   // file video kamu
-video.loop = true;
-video.muted = true;
-video.autoplay = true;
-video.playsInline = true;
-video.play();
+// ---------------------------
+// Neon Grid Cyberpunk Background
+// ---------------------------
+const gridSize = 200;   // ukuran grid
+const divisions = 100;  // banyak garis
+const gridColor = new THREE.Color(0x00ffff); // warna neon cyan
 
-const videoTexture = new THREE.VideoTexture(video);
-scene.background = videoTexture;
+const gridHelper = new THREE.GridHelper(gridSize, divisions, gridColor, gridColor);
+gridHelper.material.opacity = 0.25;
+gridHelper.material.transparent = true;
+gridHelper.rotation.x = Math.PI / 2; // jadi horizontal
+scene.add(gridHelper);
+
+// Tambahkan lantai glowing plane
+const planeGeo = new THREE.PlaneGeometry(gridSize, gridSize);
+const planeMat = new THREE.MeshBasicMaterial({
+  color: 0x000000,
+  transparent: true,
+  opacity: 0.8
+});
+const plane = new THREE.Mesh(planeGeo, planeMat);
+plane.rotation.x = -Math.PI / 2;
+scene.add(plane);
+
 
 
 
@@ -70,33 +83,45 @@ scene.background = videoTexture;
   // ---------------------------
   // App data
   // ---------------------------
-  const appLinks = [
-    { 
-      name: "Bridge", 
-      url: "https://testnet.monad.xyz/bridge", 
-      desc: "Transfer assets seamlessly across chains with ease." 
-    },
-    { 
-      name: "Swap",   
-      url: "https://testnet.monad.xyz/swap", 
-      desc: "Exchange your tokens instantly with low fees and high speed." 
-    },
-    { 
-      name: "DEX",    
-      url: "https://testnet.monad.xyz/dex", 
-      desc: "Trade on a decentralized exchange with full transparency." 
-    },
-    { 
-      name: "Wallet", 
-      url: "https://testnet.monad.xyz/wallet", 
-      desc: "Securely manage and explore your assets in one place." 
-    },
-    { 
-      name: "NFT Hub",
-      url: "https://testnet.monad.xyz/nft", 
-      desc: "Discover, collect, and trade NFTs in an immersive marketplace." 
-    }
-  ];
+const appLinks = [
+  { 
+    name: "Bridge", 
+    url: "https://testnet.monad.xyz/bridge", 
+    desc: "Transfer assets seamlessly across chains with ease.",
+    colors: ["#ff3366", "#ff9933"],   // merah → oranye
+    image: "logotes.png"
+  },
+  { 
+    name: "Swap",   
+    url: "https://testnet.monad.xyz/swap", 
+    desc: "Exchange your tokens instantly with low fees and high speed.",
+    colors: ["#00ff99", "#00ccff"],   // hijau → biru
+    image: "logotes.png"
+  },
+  { 
+    name: "DEX",    
+    url: "https://testnet.monad.xyz/dex", 
+    desc: "Trade on a decentralized exchange with full transparency.",
+    colors: ["#ff0080", "#7928ca"],   // pink → ungu
+    image: "logotes.png"
+  },
+  { 
+    name: "Wallet", 
+    url: "https://testnet.monad.xyz/wallet", 
+    desc: "Securely manage and explore your assets in one place.",
+    colors: ["#ffaa00", "#ff0066"],   // emas → merah
+    image: "logotes.png"
+  },
+  { 
+    name: "NFT Hub",
+    url: "https://testnet.monad.xyz/nft", 
+    desc: "Discover, collect, and trade NFTs in an immersive marketplace.",
+    colors: ["#00ffff", "#0088ff"],   // cyan → biru tua
+    image: "logotes.png"
+  }
+];
+
+
 
   const spacing = 6.5;
   const centerOffset = ((appLinks.length - 1) * spacing) / 2;
@@ -111,91 +136,74 @@ scene.background = videoTexture;
 function createAppCard(app, xPos) {
   const width = 600, height = 800;
   const cvs = document.createElement("canvas");
-  cvs.width = width; 
+  cvs.width = width;
   cvs.height = height;
   const ctx = cvs.getContext("2d");
 
-  // background hologram transparan
-  ctx.fillStyle = "rgba(0, 0, 0, 0.85)"; // hitam agak transparan
-ctx.roundRect(0, 0, width, height, 40);
-ctx.fill();
-
-// outline putih glow
-ctx.strokeStyle = "rgba(255, 255, 255, 0.9)";
-ctx.lineWidth = 8;
-ctx.shadowColor = "#ffffff";  // glow putih
-ctx.shadowBlur = 25;
-ctx.roundRect(0, 0, width, height, 40);
-ctx.stroke();
-
-  // header area (semi transparan gelap)
-  ctx.fillStyle = "rgba(0, 0, 0, 0.4)";
-  ctx.roundRect(0, 0, width, 200, [40,40,0,0]);
+  // background hitam gelap
+  ctx.fillStyle = "rgba(20, 20, 20, 0.95)";
+  ctx.roundRect(0, 0, width, height, 30);
   ctx.fill();
 
-
-// logo image
-const logo = new Image();
-logo.src = "logotes.png"; // ganti sesuai file logo kamu
-logo.onload = () => {
-  ctx.drawImage(logo, 40, 40, 150, 150); // posisi X,Y = 40,40 ; ukuran = 80x80
-  tex.needsUpdate = true; // wajib agar texture 3D update
-};
-
-  // tombol X
-  ctx.fillStyle = "#fff";
-  ctx.font = "bold 50px Arial";
-  ctx.textAlign = "right";
-  ctx.fillText("×", width - 30, 70);
-
-  // judul app
-  ctx.fillStyle = "rgba(255,255,255,0.85)";
-  ctx.font = "bold 50px Arial";
-  ctx.textAlign = "left";
-  ctx.fillText(app.name, 50, 280);
-
-  // deskripsi
-  ctx.fillStyle = "rgba(255,255,255,0.85)";
-  ctx.font = "28px Arial";
-  ctx.textAlign = "left";
-  wrapText(ctx, app.desc, 50, 340, width-100, 36);
-
-  // tombol Launch
-  ctx.fillStyle = "rgba(0, 255, 255, 0.25)";
-  roundRect(ctx, width/2 - 140, height-120, 280, 80, 40);
-  ctx.fill();
-
-  ctx.strokeStyle = "#00ffff";
-  ctx.lineWidth = 4;
-  ctx.shadowColor = "#00ffff";
-  ctx.shadowBlur = 15;
-  roundRect(ctx, width/2 - 140, height-120, 280, 80, 40);
+  // border gradient glow
+  const gradient = ctx.createLinearGradient(0, 0, width, height);
+  gradient.addColorStop(0, app.colors[0]);
+  gradient.addColorStop(1, app.colors[1]);
+  ctx.strokeStyle = gradient;
+  ctx.lineWidth = 8;
+  ctx.shadowColor = app.colors[0];
+  ctx.shadowBlur = 30;
+  ctx.roundRect(0, 0, width, height, 30);
   ctx.stroke();
 
-  ctx.fillStyle = "rgba(255,255,255,0.85)";
-  ctx.font = "bold 32px Arial";
-  ctx.textAlign = "center";
-  ctx.shadowBlur = 0;
-  ctx.fillText("Launch App", width/2, height-70);
+  // gambar utama sesuai app.image
+  const logo = new Image();
+  logo.src = app.image || "default.png"; // fallback kalau tidak ada
+  logo.onload = () => {
+    ctx.save();
+    ctx.beginPath();
+    ctx.roundRect(0, 0, width, 400, [30,30,0,0]);
+    ctx.clip();
+    ctx.drawImage(logo, 0, 0, width, 400);
+    ctx.restore();
+    tex.needsUpdate = true;
+  };
+
+  // teks waktu
+  ctx.fillStyle = app.colors[0];
+  ctx.font = "22px Arial";
+  ctx.textAlign = "left";
+  ctx.fillText("1 week ago", 40, 460);
+
+  // judul
+  ctx.fillStyle = "#ffffff";
+  ctx.font = "bold 46px Arial";
+  ctx.fillText(app.name, 40, 520);
+
+  // deskripsi
+  ctx.fillStyle = "rgba(255,255,255,0.8)";
+  ctx.font = "26px Arial";
+  wrapText(ctx, app.desc, 40, 580, width-80, 34);
 
   // convert ke texture
-const tex = new THREE.CanvasTexture(cvs);
-const mat = new THREE.MeshBasicMaterial({ 
-  map: tex, 
-  transparent: true, 
-  opacity: 0.9  
-});
+  const tex = new THREE.CanvasTexture(cvs);
+  const mat = new THREE.MeshBasicMaterial({
+    map: tex,
+    transparent: true,
+    opacity: 1
+  });
 
-const mesh = new THREE.Mesh(new THREE.PlaneGeometry(3.5, 4.6), mat);
-mesh.position.set(xPos, 0, 0);
+  const mesh = new THREE.Mesh(new THREE.PlaneGeometry(3.5, 4.6), mat);
+  mesh.position.set(xPos, 0, 0);
 
-// ✅ simpan material juga ke userData
-mesh.userData = { url: app.url, material: mat };
+  mesh.userData = { url: app.url, material: mat };
+  scene.add(mesh);
 
-scene.add(mesh);
-return mesh;
-
+  return mesh;
 }
+
+
+
 
 
   // helper buat rounded rect
@@ -412,6 +420,9 @@ cards.forEach((c, i) => {
   }
 });
 
+// animasi grid neon
+gridHelper.material.opacity = 0.15 + 0.1 * Math.sin(Date.now() * 0.003);
+gridHelper.position.y = -3 + Math.sin(Date.now() * 0.0015) * 0.5;
 
   renderer.render(scene, camera);
 }
