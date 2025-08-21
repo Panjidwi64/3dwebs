@@ -159,17 +159,36 @@ function createAppCard(app, xPos) {
   ctx.stroke();
 
   // gambar utama
-  const logo = new Image();
-  logo.src = app.image || "default.png";
-  logo.onload = () => {
-    ctx.save();
-    ctx.beginPath();
-    ctx.roundRect(0, 0, width, 400, [30,30,0,0]);
-    ctx.clip();
-    ctx.drawImage(logo, 0, 0, width, 400);
-    ctx.restore();
-    tex.needsUpdate = true;
-  };
+const logo = new Image();
+logo.src = app.image || "default.png";
+logo.onload = () => {
+  ctx.save();
+  // bikin lingkaran (bulat) di tengah card
+  const radius = 120; // ukuran lingkaran
+  const centerX = width / 2;
+  const centerY = 250; // posisi Y (atur sesuai selera)
+
+  ctx.beginPath();
+  ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+  ctx.closePath();
+  ctx.clip();
+
+  // gambar logo ke dalam lingkaran
+  ctx.drawImage(logo, centerX - radius, centerY - radius, radius * 2, radius * 2);
+  ctx.restore();
+
+  // tambahkan border lingkaran glow
+  ctx.beginPath();
+  ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+  ctx.strokeStyle = app.colors[0];
+  ctx.lineWidth = 8;
+  ctx.shadowColor = app.colors[1];
+  ctx.shadowBlur = 20;
+  ctx.stroke();
+
+  tex.needsUpdate = true;
+};
+
 
   // teks waktu
   ctx.fillStyle = app.colors[0];
