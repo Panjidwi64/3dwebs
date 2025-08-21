@@ -142,8 +142,8 @@ function createAppCard(app, xPos) {
   cvs.height = height;
   const ctx = cvs.getContext("2d");
 
-  // background hitam gelap
-  ctx.fillStyle = "rgba(20, 20, 20, 1.0)";
+  // background solid (tidak transparan lagi)
+  ctx.fillStyle = "rgb(20, 20, 20,)"; 
   ctx.roundRect(0, 0, width, height, 30);
   ctx.fill();
 
@@ -158,9 +158,9 @@ function createAppCard(app, xPos) {
   ctx.roundRect(0, 0, width, height, 30);
   ctx.stroke();
 
-  // gambar utama sesuai app.image
+  // gambar utama
   const logo = new Image();
-  logo.src = app.image || "default.png"; // fallback kalau tidak ada
+  logo.src = app.image || "default.png";
   logo.onload = () => {
     ctx.save();
     ctx.beginPath();
@@ -191,7 +191,7 @@ function createAppCard(app, xPos) {
   const tex = new THREE.CanvasTexture(cvs);
   const mat = new THREE.MeshBasicMaterial({
     map: tex,
-    transparent: true,
+    transparent: false,   // 🔥 default solid
     opacity: 1.0
   });
 
@@ -203,6 +203,7 @@ function createAppCard(app, xPos) {
 
   return mesh;
 }
+
 
 
 
@@ -400,27 +401,27 @@ cards.forEach((c, i) => {
     c.scale.lerp(new THREE.Vector3(1.5, 1.5, 1.5), 0.1);
     c.position.z += (-2 - c.position.z) * 0.1;
 
-    // efek pulse glow
+    // efek pulse glow transparan
     const pulse = 0.75 + 0.25 * Math.sin(t * 3);
+    c.userData.material.transparent = true;   // 🔥 aktif bisa transparan
     c.userData.material.opacity = pulse;
 
     // nyalakan particle aura
     if (aura) {
       aura.system.visible = true;
-
-      // bikin partikel berputar perlahan
       aura.system.rotation.y += 0.01;
     }
   } else {
-    // card normal
+    // card normal solid penuh
     c.scale.lerp(new THREE.Vector3(1, 1, 1), 0.1);
     c.position.z += (0 - c.position.z) * 0.1;
+    c.userData.material.transparent = false;  // 🔥 non-aktif solid
     c.userData.material.opacity = 1.0;
 
-    // matikan particle aura
     if (aura) aura.system.visible = false;
   }
 });
+
 
 // animasi grid neon
 gridHelper.material.opacity = 0.15 + 0.1 * Math.sin(Date.now() * 0.003);
